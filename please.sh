@@ -6,6 +6,8 @@ model=${PLEASE_OPENAI_CHAT_MODEL:-'gpt-4-turbo'}
 options=("[I] Invoke" "[C] Copy to clipboard" "[Q] Ask a question" "[A] Abort" )
 number_of_options=${#options[@]}
 keyName="OPENAI_API_KEY"
+current_os=$(uname -s 2>/dev/null || echo "Linux")
+current_shell=$(basename "${SHELL:-bash}")
 
 explain=0
 debug_flag=0
@@ -193,7 +195,7 @@ strip_reasoning() {
 }
 
 get_command() {
-  role="You translate the given input into a Linux command. You may not use natural language, but only a Linux shell command as an answer.
+  role="You translate the given input into a CLI command for OS: ${current_os}, shell: ${current_shell}. You may not use natural language, but only a shell command as an answer.
   Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with \\\"${fail_msg}\\\"."
 
   payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output '{
@@ -417,7 +419,7 @@ copy_to_clipboard() {
 }
 
 init_questions() {
-  systemPrompt="You will give answers in the context of the command \"${command}\" which is a Linux bash command related to the prompt \"${commandDescription}\". Be precise and succinct, answer in full sentences, no lists, no markdown."
+  systemPrompt="You will give answers in the context of the command \"${command}\" which is a CLI command for OS: ${current_os}, shell: ${current_shell}, related to the prompt \"${commandDescription}\". Be precise and succinct, answer in full sentences, no lists, no markdown."
   escapedPrompt=$(printf %s "${systemPrompt}" | jq -srR '@json')
 
   qaMessages+=("{ \"role\": \"system\", \"content\": ${escapedPrompt} }")
